@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .aa {
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div id="test">了123了123了了萨达了</div>
+  <button id="btn">click</button>
+  <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.slim.min.js"></script>
+  <script>
+    $('#btn').click(function () {
+      var text = $('#test').text()
+      var matchStr = '了'
+      var matchLength = matchStr.length
+      var tagStart = '<span class="aa">'
+      var tagEnd = '</span>'
+      var tagStartLen = tagStart.length
+      var tagEndLen = tagEnd.length
+      var tagLen = matchLength + tagStartLen + tagEndLen
+      var indexCur = text.indexOf(matchStr)
+      while(indexCur != -1) {
+        text = text.slice(0, indexCur)  + tagStart + matchStr + tagEnd + text.slice(indexCur + matchLength)
+        var index = text.slice(indexCur + tagLen).indexOf(matchStr)
+        if (index !== -1) {
+          indexCur += index + tagLen
+        } else {
+          indexCur = index;
+        }
+      }
+      $('#test').html(text)
+      // console.log(text.match('了'))
+    })
+  </script>
+</body>
+</html>
