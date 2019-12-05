@@ -15,8 +15,11 @@ var Checkbox = (function () {
             checkbox.find('.lyj-checkbox__input')
                 .addBack()
                 .addClass('is-disabled');
+            checkbox.find('.lyj-checkbox__original').attr('disabled', 'disabled');
         }
-        checkbox.find('.lyj-checkbox__original').val(this.value).prop('checked', this.checked);
+        checkbox.find('.lyj-checkbox__original').val(this.value)
+            .prop('checked', this.checked)
+            .attr('name', this.name);
         checkbox.find('.lyj-checkbox__label').text(this.label);
         return checkbox;
     };
@@ -28,16 +31,21 @@ var Checkbox = (function () {
         });
     };
     Checkbox.prototype.refleshCptCheckStatus = function () {
-        if (this.disabled)
-            return;
         this.element.find('.lyj-checkbox__input')
             .addBack()
             .toggleClass('is-checked', this.checked);
     };
     Checkbox.prototype.refleshCptDisableStatus = function () {
+        var $inputOriginal = this.element.find('.lyj-checkbox__original');
         this.element.find('.lyj-checkbox__input')
             .addBack()
             .toggleClass('is-disabled', this.disabled);
+        if (this.disabled) {
+            $inputOriginal.attr('disabled', 'disabled');
+        }
+        else {
+            $inputOriginal.removeAttr('disabled');
+        }
     };
     Object.defineProperty(Checkbox.prototype, "disabled", {
         get: function () {
@@ -53,10 +61,12 @@ var Checkbox = (function () {
 }());
 var CheckboxGroup = (function () {
     function CheckboxGroup(element, options) {
+        var _this = this;
         this.checkboxGroup = [];
         this.name = options.name;
         this.checkboxGroup = options.checkboxGroup.map(function (checkboxOptions) {
             checkboxOptions.checked = options.value.indexOf(checkboxOptions.value) != -1;
+            checkboxOptions.name = _this.name;
             return new Checkbox(checkboxOptions);
         });
         this.changeHandler = options.changeHandler;
@@ -96,10 +106,30 @@ var CheckboxGroup = (function () {
     };
     CheckboxGroup.prototype.refleshCptDisableStatus = function () {
         var _this = this;
+        if (this.disabled === undefined)
+            return;
         this.checkboxGroup.forEach(function (checkbox) {
             checkbox.disabled = _this.disabled;
             checkbox.refleshCptDisableStatus();
         });
+    };
+    CheckboxGroup.prototype.getValue = function (includeDisabled) {
+        var _this = this;
+        if (includeDisabled === void 0) { includeDisabled = false; }
+        if (includeDisabled) {
+            return this._value;
+        }
+        if (this.disabled) {
+            return [];
+        }
+        var t = this._value.slice();
+        this.checkboxGroup.forEach(function (checkbox) {
+            var i = _this.value.indexOf(checkbox.value);
+            if (i !== -1 && checkbox.disabled) {
+                t.splice(i, 1);
+            }
+        });
+        return t;
     };
     Object.defineProperty(CheckboxGroup.prototype, "value", {
         get: function () {
@@ -129,9 +159,9 @@ $.fn.extend({
     'lyj_checkboxGroup': function (options) {
         var _this = this;
         var defaluts = {
-            disabled: false,
             min: 0,
             max: options.checkboxGroup.length,
+            value: [],
             changeHandler: function () { }
         };
         var implementOptions = $.extend(true, {}, defaluts, options);

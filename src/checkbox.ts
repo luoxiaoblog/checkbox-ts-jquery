@@ -56,8 +56,11 @@ class Checkbox {
       checkbox.find('.lyj-checkbox__input')
               .addBack()
               .addClass('is-disabled')
+      checkbox.find('.lyj-checkbox__original').attr('disabled', 'disabled')
     }
-    checkbox.find('.lyj-checkbox__original').val(this.value).prop('checked', this.checked)
+    checkbox.find('.lyj-checkbox__original').val(this.value)
+                                            .prop('checked', this.checked)
+                                            .attr('name', this.name)
     checkbox.find('.lyj-checkbox__label').text(this.label)
     return checkbox
   }
@@ -71,16 +74,22 @@ class Checkbox {
   }
 
   refleshCptCheckStatus() {
-    if (this.disabled) return;
+    // if (this.disabled) return;
     this.element.find('.lyj-checkbox__input')
                 .addBack()
-                .toggleClass('is-checked', this.checked)
+                .toggleClass('is-checked', this.checked)               
   }
 
   refleshCptDisableStatus() {
+    let $inputOriginal = this.element.find('.lyj-checkbox__original')
     this.element.find('.lyj-checkbox__input')
                 .addBack()
                 .toggleClass('is-disabled', this.disabled)
+    if (this.disabled) {
+      $inputOriginal.attr('disabled', 'disabled')
+    } else {
+      $inputOriginal.removeAttr('disabled')
+    }
   }
 
   get disabled(): boolean {
@@ -107,6 +116,7 @@ class CheckboxGroup {
     this.name = options.name;
     this.checkboxGroup = options.checkboxGroup.map((checkboxOptions: ICheckboxOption) => {
       checkboxOptions.checked = options.value.indexOf(checkboxOptions.value) != -1
+      checkboxOptions.name = this.name
       return new Checkbox(checkboxOptions);
     });
     this.changeHandler = options.changeHandler;
@@ -147,10 +157,28 @@ class CheckboxGroup {
   }
 
   refleshCptDisableStatus() {
-    this.checkboxGroup.forEach((checkbox: Checkbox) => {
+    if (this.disabled === undefined) return
+    this.checkboxGroup.forEach((checkbox: Checkbox) => {     
       checkbox.disabled = this.disabled
       checkbox.refleshCptDisableStatus()
     })
+  }
+
+  getValue(includeDisabled: boolean = false): string[] {
+    if (includeDisabled) {
+      return this._value
+    }
+    if (this.disabled) {
+      return []
+    }
+    let t = this._value.slice()
+    this.checkboxGroup.forEach((checkbox: Checkbox) => {
+      var i = this.value.indexOf(checkbox.value);
+      if (i !== -1 && checkbox.disabled) {
+        t.splice(i, 1)
+      }
+    })
+    return t;
   }
 
   get value(): string[] {
@@ -175,9 +203,9 @@ class CheckboxGroup {
 $.fn.extend({
   'lyj_checkboxGroup': function(options: ICheckboxGroupOption) {
     let defaluts: ICheckboxGroupOption = {
-      disabled: false,
       min: 0,
       max: options.checkboxGroup.length,
+      value: [],
       changeHandler: () => {}
     }
     let implementOptions: ICheckboxGroupOption = $.extend(true, {}, defaluts, options);

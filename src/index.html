@@ -200,16 +200,20 @@
   </div> -->
 <input type="checkbox" name="cc" value="aaaa">aaaa
 <input type="checkbox" name="cc" value="bbbb">bbbb
+<form id="form">
   <div id="test"></div>
+</form>
+  
   <script type="text/javascript" src="https://front.leyoujia.com/js/jquery.js"></script>
   <script src="checkbox.js"></script>
   <script>
     $('#test').lyj_checkboxGroup({
       name: 'aa',
       value: ['1'],
-      disabled: true,
+      // disabled: true,
       checkboxGroup: [{
         value: '1',
+        disabled: true,
         label: '选项一'
       }, {
         value: '2',
